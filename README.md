@@ -44,39 +44,6 @@ Pet-проект для отслеживания рабочего времени
 
 Проект ведётся итеративно: каждая фича обсуждается и реализуется в диалоге с Claude Code. История решений фиксируется в [DECISIONS.md](./DECISIONS.md).
 
-### Запуск
-
-```bash
-# Инструкции появятся после выбора стека
-```
-
-## Ветки и коммиты
-
-### Структура веток
-
-| Ветка | Назначение |
-|---|---|
-| `main` | Стабильные релизы и milestone'ы |
-| `develop` | Активная разработка — основная рабочая ветка |
-| `feature/<тема>` | Отдельные фичи, создаются от `develop`, вливаются в `develop` |
-
-Пример имён feature-веток: `feature/domain-model`, `feature/backend-scaffold`, `feature/timer-api`.
-
-### Соглашение по коммитам
-
-Используем [Conventional Commits](https://www.conventionalcommits.org/):
-
-```
-<type>(<scope>): <description>
-
-feat(backend): add timer start/stop endpoints
-fix(frontend): correct date formatting in history view
-docs: update README with branch conventions
-chore(desktop): upgrade Tauri to 2.x
-```
-
-Типы: `feat`, `fix`, `docs`, `chore`, `refactor`, `test`, `ci`.
-
 ## Статус
 
 > В процессе. Проект находится на начальном этапе — определяется стек и архитектура.
