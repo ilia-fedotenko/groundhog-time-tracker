@@ -60,7 +60,13 @@ chore(desktop): upgrade Tauri to 2.x
 ### Frontend (frontend/)
 
 ```bash
-# заглушка — появится после скаффолдинга
+cd frontend
+nvm use 24       # переключиться на Node 24 (Vite 7 требует Node 18+)
+npm install      # установить зависимости
+npm run dev      # dev-сервер (Vite), http://localhost:5173
+npm run build    # production-сборка
+npm run preview  # предпросмотр production-сборки
+npm run lint     # ESLint
 ```
 
 ### Desktop (desktop/)
