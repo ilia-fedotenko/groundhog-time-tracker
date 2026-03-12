@@ -32,6 +32,7 @@ project.assets.json
 # Node.js / React (frontend/)
 node_modules/
 dist/
+.env
 .env.local
 .env.*.local
 npm-debug.log*
