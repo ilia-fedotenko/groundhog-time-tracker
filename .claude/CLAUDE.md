@@ -7,16 +7,17 @@ Pet-проект для отслеживания рабочего времени
 | Часть | Стек | Назначение |
 |---|---|---|
 | Backend | C#/.NET | API и бизнес-логика |
-| Frontend | React + Vite + TypeScript + Tailwind + shadcn/ui | Веб-интерфейс |
-| Desktop | Rust/Tauri | macOS-приложение для быстрого доступа |
+| Frontend | React/TypeScript + Vite + Tailwind + shadcn/ui | Веб-интерфейс |
+| Desktop | Rust/Tauri + React/TypeScript + Vite + Tailwind | macOS-приложение для быстрого доступа |
 
 ## Структура репозитория
 
 | Папка | Содержимое |
 |---|---|
 | `backend/` | C#/.NET — API и бизнес-логика |
-| `frontend/` | React + Vite + TypeScript — веб-интерфейс |
-| `desktop/` | Rust/Tauri — macOS-приложение |
+| `frontend/` | React/TypeScript + Vite + Tailwind + shadcn/ui — веб-интерфейс |
+| `desktop/src/` | React/TypeScript — фронтенд панели |
+| `desktop/src-tauri/` | Rust/Tauri — нативная обёртка |
 | `docs/` | OpenAPI-схема, архитектурные решения |
 
 ## UI-компоненты
@@ -71,8 +72,15 @@ npm run lint     # ESLint
 
 ### Desktop (desktop/)
 
+Предварительно: [установить Rust](https://rustup.rs) и убедиться что `cargo` есть в PATH.
+
 ```bash
-# заглушка — появится после скаффолдинга
+cd desktop
+nvm use 24        # переключиться на Node 24
+npm install       # установить JS-зависимости
+npm run dev       # запустить Tauri dev (Vite + Rust компилируются вместе; первый запуск долгий)
+npm run build     # production-сборка (.app в src-tauri/target/release/bundle/)
+npm run lint      # ESLint
 ```
 
 ## Правила для Claude
