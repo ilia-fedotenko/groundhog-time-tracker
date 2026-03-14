@@ -1,0 +1,31 @@
+#!/usr/bin/env bash
+#
+# Blocks commits that contain absolute paths to user home directories.
+# Catches accidental leakage of system-specific paths (e.g. /Users/..., /home/...).
+
+PATTERNS=('/Users/' '/home/')
+
+STAGED_FILES=$(git diff --cached --name-only --diff-filter=ACM)
+
+if [ -z "$STAGED_FILES" ]; then
+  exit 0
+fi
+
+FOUND=0
+
+for PATTERN in "${PATTERNS[@]}"; do
+  MATCHES=$(git diff --cached -U0 | grep -E '^\+' | grep -Ev '^\+\+\+' | grep -F "$PATTERN")
+  if [ -n "$MATCHES" ]; then
+    echo "error: absolute user path detected in staged changes (pattern: $PATTERN)"
+    echo "$MATCHES"
+    FOUND=1
+  fi
+done
+
+if [ "$FOUND" -ne 0 ]; then
+  echo ""
+  echo "Commit blocked. Replace absolute paths with relative paths or placeholders."
+  exit 1
+fi
+
+exit 0
