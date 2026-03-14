@@ -25,31 +25,6 @@ Pet-проект для отслеживания рабочего времени
 Frontend и Desktop используют единый визуальный язык (Tailwind + shadcn/ui).
 Общие компоненты выносятся в общее место и переиспользуются в обоих приложениях.
 
-## Ветки
-
-| Ветка | Назначение |
-|---|---|
-| `main` | Стабильные релизы и milestone'ы |
-| `develop` | Активная разработка — основная рабочая ветка |
-| `feature/<тема>` | Отдельные фичи, создаются от `develop`, вливаются в `develop` |
-
-Примеры имён feature-веток: `feature/domain-model`, `feature/backend-scaffold`, `feature/timer-api`.
-
-## Коммиты
-
-Используем [Conventional Commits](https://www.conventionalcommits.org/):
-
-```
-<type>(<scope>): <description>
-
-feat(backend): add timer start/stop endpoints
-fix(frontend): correct date formatting in history view
-docs: update README with branch conventions
-chore(desktop): upgrade Tauri to 2.x
-```
-
-Типы: `feat`, `fix`, `docs`, `chore`, `refactor`, `test`, `ci`.
-
 ## Команды запуска
 
 ### Backend (backend/)
@@ -85,7 +60,6 @@ npm run lint      # ESLint
 
 ## Правила для Claude
 
-- Никогда не коммитить напрямую в `main`
-- feature-ветки создаются от `develop`, вливаются в `develop` через PR/merge
-- Следовать Conventional Commits
-- История решений — в `DECISIONS.md`
+- Перед любыми операциями с ветками или коммитами — обязательно прочитать [CONTRIBUTING.md](../CONTRIBUTING.md). Там описаны конвенции по веткам, коммитам и архитектурным решениям.
+- Перед мержем любой ветки в `develop` — обязательно запустить агента `pr-review-agent` и дождаться вердикта. Мерж разрешён только при вердикте READY TO MERGE.
+- Никогда не записывать абсолютные пути файловой системы (например `/Users/...`, `/home/...`) в tracked-файлы репозитория. Использовать относительные пути или описательные плейсхолдеры.
