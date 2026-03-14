@@ -12,7 +12,7 @@
 
 ## Порядок внедрения
 
-- [ ] PR Review Agent
+- [x] PR Review Agent
 - [ ] Architect Agent
 - [ ] QA Agent
 
