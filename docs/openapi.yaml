@@ -1,0 +1,653 @@
+openapi: 3.1.0
+
+info:
+  title: Groundhog Time Tracker API
+  version: 1.0.0
+  description: REST API for the Groundhog time tracking application.
+
+servers:
+  - url: http://localhost:5000
+    description: Local development server
+
+security: []
+
+paths:
+
+  # ─── Tasks ────────────────────────────────────────────────────────────────
+
+  /tasks:
+    get:
+      operationId: listTasks
+      summary: List all tasks
+      tags: [Tasks]
+      parameters:
+        - name: tagId
+          in: query
+          required: false
+          schema:
+            type: string
+            format: uuid
+        - name: search
+          in: query
+          required: false
+          description: Filter by partial task name (case-insensitive substring match)
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Array of tasks with their tags
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TaskResponse'
+
+    post:
+      operationId: createTask
+      summary: Create a task
+      tags: [Tasks]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TaskCreateRequest'
+      responses:
+        '201':
+          description: Task created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TaskResponse'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+
+  /tasks/{taskId}:
+    parameters:
+      - $ref: '#/components/parameters/taskId'
+
+    get:
+      operationId: getTask
+      summary: Get a task with its tags
+      tags: [Tasks]
+      responses:
+        '200':
+          description: Task found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TaskResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    put:
+      operationId: updateTask
+      summary: Rename a task
+      tags: [Tasks]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TaskUpdateRequest'
+      responses:
+        '200':
+          description: Task updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TaskResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+
+    delete:
+      operationId: deleteTask
+      summary: Delete a task and all its time entries
+      tags: [Tasks]
+      responses:
+        '204':
+          description: Task deleted
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  # ─── Timer ────────────────────────────────────────────────────────────────
+
+  /tasks/{taskId}/timer/start:
+    parameters:
+      - $ref: '#/components/parameters/taskId'
+
+    post:
+      operationId: startTimer
+      summary: Start a timer for a task
+      description: Creates a new active TimeEntry. Returns 409 if a timer is already running for this task.
+      tags: [Timer]
+      responses:
+        '201':
+          description: Timer started; new TimeEntry returned
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TimeEntryResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+
+  /tasks/{taskId}/timer/stop:
+    parameters:
+      - $ref: '#/components/parameters/taskId'
+
+    post:
+      operationId: stopTimer
+      summary: Stop the active timer for a task
+      description: Sets stoppedAt on the active TimeEntry. Returns 409 if no timer is running for this task.
+      tags: [Timer]
+      responses:
+        '200':
+          description: Timer stopped; updated TimeEntry returned
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TimeEntryResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+
+  /timer/active:
+    get:
+      operationId: getActiveTimer
+      summary: Get the currently active TimeEntry across all tasks
+      description: Returns the active entry, or 204 if no timer is running. Intended for the desktop tray.
+      tags: [Timer]
+      responses:
+        '200':
+          description: An active TimeEntry exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TimeEntryResponse'
+        '204':
+          description: No active timer
+
+  # ─── TimeEntries ──────────────────────────────────────────────────────────
+
+  /time-entries:
+    get:
+      operationId: listTimeEntries
+      summary: List time entries with optional filters
+      tags: [TimeEntries]
+      parameters:
+        - name: taskId
+          in: query
+          required: false
+          schema:
+            type: string
+            format: uuid
+        - name: from
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date-time
+        - name: to
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date-time
+        - name: active
+          in: query
+          required: false
+          description: When true, returns only entries where stoppedAt is null
+          schema:
+            type: boolean
+      responses:
+        '200':
+          description: Array of time entries
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TimeEntryResponse'
+
+    post:
+      operationId: createTimeEntry
+      summary: Create a time entry manually (backfill)
+      tags: [TimeEntries]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TimeEntryCreateRequest'
+      responses:
+        '201':
+          description: Time entry created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TimeEntryResponse'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+
+  /time-entries/{entryId}:
+    parameters:
+      - $ref: '#/components/parameters/entryId'
+
+    get:
+      operationId: getTimeEntry
+      summary: Get a time entry
+      tags: [TimeEntries]
+      responses:
+        '200':
+          description: Time entry found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TimeEntryResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    put:
+      operationId: updateTimeEntry
+      summary: Update timestamps of a time entry (correction)
+      tags: [TimeEntries]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TimeEntryUpdateRequest'
+      responses:
+        '200':
+          description: Time entry updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TimeEntryResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+
+    delete:
+      operationId: deleteTimeEntry
+      summary: Delete a time entry
+      tags: [TimeEntries]
+      responses:
+        '204':
+          description: Time entry deleted
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /tasks/{taskId}/time-entries:
+    parameters:
+      - $ref: '#/components/parameters/taskId'
+
+    get:
+      operationId: listTaskTimeEntries
+      summary: List time entries scoped to a task
+      tags: [TimeEntries]
+      responses:
+        '200':
+          description: Array of time entries for the task
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TimeEntryResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  # ─── Tags ─────────────────────────────────────────────────────────────────
+
+  /tags:
+    get:
+      operationId: listTags
+      summary: List all tags
+      tags: [Tags]
+      responses:
+        '200':
+          description: Array of tags
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TagResponse'
+
+    post:
+      operationId: createTag
+      summary: Create a tag
+      tags: [Tags]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TagCreateRequest'
+      responses:
+        '201':
+          description: Tag created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TagResponse'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+
+  /tags/{tagId}:
+    parameters:
+      - $ref: '#/components/parameters/tagId'
+
+    get:
+      operationId: getTag
+      summary: Get a tag
+      tags: [Tags]
+      responses:
+        '200':
+          description: Tag found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TagResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    put:
+      operationId: updateTag
+      summary: Rename a tag
+      tags: [Tags]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TagUpdateRequest'
+      responses:
+        '200':
+          description: Tag updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TagResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+
+    delete:
+      operationId: deleteTag
+      summary: Delete a tag and remove it from all tasks
+      tags: [Tags]
+      responses:
+        '204':
+          description: Tag deleted
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  # ─── Task–Tag assignment ──────────────────────────────────────────────────
+
+  /tasks/{taskId}/tags:
+    parameters:
+      - $ref: '#/components/parameters/taskId'
+
+    get:
+      operationId: listTaskTags
+      summary: List tags assigned to a task
+      tags: [TaskTags]
+      responses:
+        '200':
+          description: Array of tags on the task
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TagResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    put:
+      operationId: replaceTaskTags
+      summary: Replace the full tag set of a task
+      tags: [TaskTags]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TaskTagsUpdateRequest'
+      responses:
+        '200':
+          description: Updated tag list for the task
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TagResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+
+  /tasks/{taskId}/tags/{tagId}:
+    parameters:
+      - $ref: '#/components/parameters/taskId'
+      - $ref: '#/components/parameters/tagId'
+
+    post:
+      operationId: addTagToTask
+      summary: Add a single tag to a task
+      tags: [TaskTags]
+      responses:
+        '204':
+          description: Tag added (idempotent — no-op if already assigned)
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    delete:
+      operationId: removeTagFromTask
+      summary: Remove a single tag from a task
+      tags: [TaskTags]
+      responses:
+        '204':
+          description: Tag removed
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+# ─── Components ───────────────────────────────────────────────────────────────
+
+components:
+
+  parameters:
+    taskId:
+      name: taskId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+
+    tagId:
+      name: tagId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+
+    entryId:
+      name: entryId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+
+  schemas:
+
+    # ── Request DTOs ──────────────────────────────────────────────────────
+
+    TaskCreateRequest:
+      type: object
+      required: [name]
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 200
+
+    TaskUpdateRequest:
+      type: object
+      required: [name]
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 200
+
+    TagCreateRequest:
+      type: object
+      required: [name]
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 100
+
+    TagUpdateRequest:
+      type: object
+      required: [name]
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 100
+
+    TimeEntryCreateRequest:
+      type: object
+      required: [taskId, startedAt]
+      properties:
+        taskId:
+          type: string
+          format: uuid
+        startedAt:
+          type: string
+          format: date-time
+        stoppedAt:
+          type: [string, 'null']
+          format: date-time
+
+    TimeEntryUpdateRequest:
+      type: object
+      required: [startedAt]
+      properties:
+        startedAt:
+          type: string
+          format: date-time
+        stoppedAt:
+          type: [string, 'null']
+          format: date-time
+
+    TaskTagsUpdateRequest:
+      type: object
+      required: [tagIds]
+      properties:
+        tagIds:
+          type: array
+          items:
+            type: string
+            format: uuid
+
+    # ── Response DTOs ─────────────────────────────────────────────────────
+
+    TaskResponse:
+      type: object
+      required: [id, name, tags]
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        tags:
+          type: array
+          items:
+            $ref: '#/components/schemas/TagResponse'
+
+    TagResponse:
+      type: object
+      required: [id, name]
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+
+    TimeEntryResponse:
+      type: object
+      required: [id, taskId, startedAt, stoppedAt]
+      properties:
+        id:
+          type: string
+          format: uuid
+        taskId:
+          type: string
+          format: uuid
+        startedAt:
+          type: string
+          format: date-time
+        stoppedAt:
+          type: [string, 'null']
+          format: date-time
+
+    # ── Error ─────────────────────────────────────────────────────────────
+
+    ProblemDetails:
+      description: RFC 7807 problem details (default ASP.NET Core error format)
+      type: object
+      required: [type, title, status]
+      properties:
+        type:
+          type: string
+          format: uri
+        title:
+          type: string
+        status:
+          type: integer
+        detail:
+          type: [string, 'null']
+        instance:
+          type: [string, 'null']
+          format: uri
+
+  responses:
+    NotFound:
+      description: Resource not found
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/ProblemDetails'
+
+    Conflict:
+      description: Conflict — timer already running or no active timer
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/ProblemDetails'
+
+    UnprocessableEntity:
+      description: Validation error
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/ProblemDetails'

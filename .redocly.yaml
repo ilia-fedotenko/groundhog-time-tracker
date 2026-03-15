@@ -1,0 +1,9 @@
+# Конфиг линтера для OpenAPI-схемы (docs/openapi.yaml).
+# Запуск: npx @redocly/cli lint docs/openapi.yaml --config .redocly.yaml
+extends:
+  - recommended
+
+rules:
+  info-license: off
+  operation-4xx-response: off
+  no-server-example.com: off
