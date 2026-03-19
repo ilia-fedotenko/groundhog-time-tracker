@@ -28,7 +28,7 @@ Pet-проект для отслеживания рабочего времени
 Веб-интерфейс для полноценной работы с трекером: просмотр истории, отчёты, управление проектами и тегами. Стек: React/TypeScript + Vite + Tailwind + shadcn/ui.
 
 ### macOS App
-Миниатюрное приложение для быстрого доступа: запустить или остановить таймер одной кнопкой, не отвлекаясь от работы. Стек: Rust/Tauri + React/TypeScript + Vite + Tailwind.
+Миниатюрное приложение для быстрого доступа: запустить или остановить таймер одной кнопкой, не отвлекаясь от работы. Стек: Rust/Tauri + React/TypeScript + Vite + Tailwind + shadcn/ui.
 
 ## Структура репозитория
 
@@ -38,6 +38,7 @@ Pet-проект для отслеживания рабочего времени
 ├── frontend/          # React/TypeScript + Vite + Tailwind + shadcn/ui — веб-интерфейс
 ├── desktop/src/       # React/TypeScript — фронтенд панели
 ├── desktop/src-tauri/ # Rust/Tauri — нативная обёртка
+├── packages/ui/       # Общая библиотека компонентов (@groundhog/ui) — shadcn/ui + Tailwind 4
 └── docs/              # OpenAPI-схема, архитектурные решения
 ```
 
@@ -56,3 +57,7 @@ Pet-проект для отслеживания рабочего времени
 - [x] Скаффолдинг desktop — Rust/Tauri проект
 - [x] OpenAPI-схема — эндпоинты и контракты
 - [x] Скаффолдинг backend — C#/.NET проект, работающий сервер с заглушками
+- [x] Общий UI package — npm workspaces + @groundhog/ui (shadcn/ui + Tailwind 4)
+- [ ] Подключение MCP-сервера Context7
+- [ ] Изучение необходимости интеграции GitHub review агента
+- [ ] Черновая версия UI основной страницы desktop (без привязки к backend)
