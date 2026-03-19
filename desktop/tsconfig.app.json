@@ -14,7 +14,11 @@
     "strict": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
-    "noFallthroughCasesInSwitch": true
+    "noFallthroughCasesInSwitch": true,
+    "paths": {
+      "@groundhog/ui": ["../packages/ui/src/index.ts"],
+      "@groundhog/ui/*": ["../packages/ui/src/*"]
+    }
   },
   "include": ["src"]
 }

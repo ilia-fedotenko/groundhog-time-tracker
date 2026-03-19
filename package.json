@@ -1,0 +1,14 @@
+{
+  "name": "groundhog",
+  "private": true,
+  "workspaces": [
+    "frontend",
+    "desktop",
+    "packages/ui"
+  ],
+  "overrides": {
+    "vite": "^7",
+    "@vitejs/plugin-react": "^5",
+    "typescript": "~5.9.3"
+  }
+}

@@ -8,7 +8,8 @@ Pet-проект для отслеживания рабочего времени
 |---|---|---|
 | Backend | C#/.NET | API и бизнес-логика |
 | Frontend | React/TypeScript + Vite + Tailwind + shadcn/ui | Веб-интерфейс |
-| Desktop | Rust/Tauri + React/TypeScript + Vite + Tailwind | macOS-приложение для быстрого доступа |
+| Desktop | Rust/Tauri + React/TypeScript + Vite + Tailwind + shadcn/ui | macOS-приложение для быстрого доступа |
+| UI Package | React/TypeScript + Tailwind + shadcn/ui | Общая библиотека компонентов (`@groundhog/ui`) |
 
 ## Структура репозитория
 
@@ -18,14 +19,25 @@ Pet-проект для отслеживания рабочего времени
 | `frontend/` | React/TypeScript + Vite + Tailwind + shadcn/ui — веб-интерфейс |
 | `desktop/src/` | React/TypeScript — фронтенд панели |
 | `desktop/src-tauri/` | Rust/Tauri — нативная обёртка |
+| `packages/ui/` | Общая библиотека компонентов (`@groundhog/ui`) — shadcn/ui + Tailwind 4 |
 | `docs/` | OpenAPI-схема, архитектурные решения |
 
 ## UI-компоненты
 
 Frontend и Desktop используют единый визуальный язык (Tailwind + shadcn/ui).
-Общие компоненты выносятся в общее место и переиспользуются в обоих приложениях.
+Общие компоненты живут в `packages/ui/` и переиспользуются через импорт `@groundhog/ui`.
+
+Добавление нового компонента:
+
+```bash
+cd packages/ui
+npx shadcn@latest add <component>  # создаёт файл в src/components/ui/
+# затем добавить re-export в src/index.ts
+```
 
 ## Команды запуска
+
+> **npm workspaces**: репозиторий использует npm workspaces. `npm install` нужно запускать из **корня репозитория**, а не из поддиректорий.
 
 ### Backend (backend/)
 
@@ -42,9 +54,9 @@ dotnet build        # сборка без запуска
 ### Frontend (frontend/)
 
 ```bash
-cd frontend
 nvm use 24       # переключиться на Node 24 (Vite 7 требует Node 18+)
-npm install      # установить зависимости
+npm install      # установить зависимости (запускать из корня репо!)
+cd frontend
 npm run dev      # dev-сервер (Vite), http://localhost:5173
 npm run build    # production-сборка
 npm run preview  # предпросмотр production-сборки
@@ -56,9 +68,9 @@ npm run lint     # ESLint
 Предварительно: [установить Rust](https://rustup.rs) и убедиться что `cargo` есть в PATH.
 
 ```bash
-cd desktop
 nvm use 24        # переключиться на Node 24
-npm install       # установить JS-зависимости
+npm install       # установить JS-зависимости (запускать из корня репо!)
+cd desktop
 npm run dev       # запустить Tauri dev (Vite + Rust компилируются вместе; первый запуск долгий)
 npm run build     # production-сборка (.app в src-tauri/target/release/bundle/)
 npm run lint      # ESLint

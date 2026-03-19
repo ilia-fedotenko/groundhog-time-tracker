@@ -8,6 +8,7 @@ Observed scopes in git history:
 - `backend` — changes under `backend/`
 - `frontend` — changes under `frontend/`
 - `desktop` — changes under `desktop/`
+- `ui` — changes under `packages/ui/` (shared component library @groundhog/ui); may include cross-cutting integration wiring in frontend/ and desktop/ when those changes are in service of the ui package itself (first established in feature/ui-package)
 - `tooling` — changes to developer tooling: `.claude/`, `.githooks/`, `CONTRIBUTING.md`, `docs/prompts/`
 - (no scope) — repo-wide docs changes (README, top-level docs/)
 

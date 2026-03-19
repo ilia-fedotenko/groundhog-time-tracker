@@ -1,5 +1,11 @@
+import { Button } from "@groundhog/ui"
+
 function App() {
-  return <h1>Groundhog</h1>
+  return (
+    <div className="flex h-screen items-center justify-center">
+      <Button>Groundhog</Button>
+    </div>
+  )
 }
 
 export default App
