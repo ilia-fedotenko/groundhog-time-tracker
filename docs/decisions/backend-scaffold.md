@@ -8,8 +8,7 @@
 
 ```
 backend/
-├── .gitignore               # dotnet-generated: bin/, obj/
-├── global.json              # pin .NET 9 SDK
+├── global.json              # pin .NET 10 SDK
 ├── Groundhog.sln
 └── Groundhog.Api/
     ├── Groundhog.Api.csproj
@@ -38,7 +37,7 @@ ASP.NET Core Web API, controller-based (не Minimal API) — более явн�
 
 ### OpenAPI UI
 
-Scalar (`/scalar/v1`) вместо Swagger/Swashbuckle. В .NET 9 встроена генерация OpenAPI-документа (`Microsoft.AspNetCore.OpenApi`), Scalar выступает UI-слоем поверх него. Swashbuckle имеет известные проблемы совместимости с .NET 9.
+Scalar (`/scalar/v1`) вместо Swagger/Swashbuckle. В .NET 10 встроена генерация OpenAPI-документа (`Microsoft.AspNetCore.OpenApi`), Scalar выступает UI-слоем поверх него. Swashbuckle имеет известные проблемы совместимости с .NET 10.
 
 - OpenAPI JSON: `/openapi/v1.json`
 - Scalar UI: `/scalar/v1`
