@@ -29,6 +29,9 @@ obj/
 project.lock.json
 project.assets.json
 
+# Claude Code MCP config (contains API keys)
+.mcp.json
+
 # Node.js / React (frontend/)
 node_modules/
 dist/
