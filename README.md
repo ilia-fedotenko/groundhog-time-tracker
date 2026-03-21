@@ -59,5 +59,5 @@ Pet-проект для отслеживания рабочего времени
 - [x] Скаффолдинг backend — C#/.NET проект, работающий сервер с заглушками
 - [x] Общий UI package — npm workspaces + @groundhog/ui (shadcn/ui + Tailwind 4)
 - [x] Подключение MCP-сервера Context7 и ревью backend scaffold с его помощью
-- [ ] Изучение необходимости интеграции GitHub review агента
+- [x] Изучение необходимости интеграции GitHub review агента
 - [ ] Черновая версия UI основной страницы desktop (без привязки к backend)

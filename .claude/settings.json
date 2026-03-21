@@ -9,12 +9,23 @@
     "context7"
   ],
   "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash .claude/hooks/enforce-feature-branch.sh"
+          }
+        ]
+      }
+    ],
     "SessionStart": [
       {
         "hooks": [
           {
             "type": "command",
-            "command": "bash .claude/scripts/generate-mcp.sh"
+            "command": "bash .claude/hooks/generate-mcp.sh"
           }
         ]
       }
