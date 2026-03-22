@@ -1,11 +1,12 @@
-import { Button } from "@groundhog/ui"
+import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow"
+import TimerPage from "./pages/TimerPage"
+import TaskDropdownPage from "./pages/TaskDropdownPage"
 
-function App() {
-  return (
-    <div className="flex h-screen items-center justify-center">
-      <Button>Groundhog</Button>
-    </div>
-  )
+const windowLabel = getCurrentWebviewWindow().label
+
+export default function App() {
+  if (windowLabel === "task-dropdown") {
+    return <TaskDropdownPage />
+  }
+  return <TimerPage />
 }
-
-export default App
