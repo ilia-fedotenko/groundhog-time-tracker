@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react"
-import { listen } from "@tauri-apps/api/event"
-import { emit } from "@tauri-apps/api/event"
+import { emit, listen } from "@tauri-apps/api/event"
 
 const MOCK_TASKS = [
   "Разработка UI десктоп-панели",
@@ -26,10 +25,6 @@ export default function TaskDropdownPage() {
     t.toLowerCase().includes(filter.toLowerCase())
   )
 
-  const handleSelect = async (task: string) => {
-    await emit("task-selected", task)
-  }
-
   return (
     <div className="flex flex-col bg-popover border border-border rounded-md overflow-hidden h-screen">
       {filtered.length === 0 ? (
@@ -41,9 +36,9 @@ export default function TaskDropdownPage() {
           {filtered.map((task) => (
             <li
               key={task}
-              className="px-3 py-2 text-sm cursor-pointer hover:bg-accent select-none"
-              onMouseDown={(e) => e.preventDefault()}
-              onClick={() => handleSelect(task)}
+              className="px-3 py-2 text-sm cursor-pointer select-none"
+              onMouseEnter={() => emit("task-hovered", task)}
+              onMouseLeave={() => emit("task-hovered", null)}
             >
               {task}
             </li>

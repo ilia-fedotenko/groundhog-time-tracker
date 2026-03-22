@@ -12,19 +12,15 @@ export default function TimerPage() {
   const [running, setRunning] = useState(false)
   const [tags, setTags] = useState(MOCK_TAGS)
   const dropdownOpen = useRef(false)
+  const hoveredTask = useRef<string | null>(null)
 
   useEffect(() => {
-    let unlisten: (() => void) | undefined
-    listen<string>("task-selected", async (event) => {
-      const selected = event.payload
-      setTask(selected)
-      setInputValue(selected)
-      dropdownOpen.current = false
-      await invoke("close_task_dropdown")
-    }).then((fn) => {
-      unlisten = fn
+    const unlistenHovered = listen<string | null>("task-hovered", (event) => {
+      hoveredTask.current = event.payload
     })
-    return () => unlisten?.()
+    return () => {
+      unlistenHovered.then((fn) => fn())
+    }
   }, [])
 
   const openDropdown = async () => {
@@ -60,29 +56,22 @@ export default function TimerPage() {
     }
   }
 
-  const handleBlur = () => {
-    // Delay to let a dropdown item click (onMouseDown) fire first
-    setTimeout(async () => {
-      if (dropdownOpen.current) {
-        dropdownOpen.current = false
-        await invoke("close_task_dropdown")
-      }
-    }, 150)
+  const handleBlur = async () => {
+    if (!dropdownOpen.current) return
+    if (hoveredTask.current) {
+      const selected = hoveredTask.current
+      hoveredTask.current = null
+      setTask(selected)
+      setInputValue(selected)
+    }
+    dropdownOpen.current = false
+    await invoke("close_task_dropdown")
   }
 
   return (
     <div className="flex h-screen flex-col justify-center gap-2 bg-background px-3 py-2">
       {/* Row 1: play button + task input */}
       <div className="flex items-center gap-2">
-        <Button
-          size="icon"
-          className="size-8 shrink-0"
-          onClick={() => setRunning((r) => !r)}
-          disabled={!task}
-        >
-          {running ? <Square className="size-3.5" /> : <Play className="size-3.5" />}
-        </Button>
-
         <Input
           placeholder="Что делаем?"
           value={inputValue}
@@ -91,6 +80,15 @@ export default function TimerPage() {
           onKeyDown={handleKeyDown}
           onBlur={handleBlur}
         />
+
+        <Button
+          size="icon"
+          className="size-8 shrink-0"
+          onClick={() => setRunning((r) => !r)}
+          disabled={!task}
+        >
+          {running ? <Square className="size-3.5" /> : <Play className="size-3.5" />}
+        </Button>
       </div>
 
       {/* Row 2: tags */}
