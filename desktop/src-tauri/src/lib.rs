@@ -19,6 +19,61 @@ fn show_without_focus(window: &tauri::WebviewWindow) -> Result<(), String> {
     window.show().map_err(|e| e.to_string())
 }
 
+/// Wraps a raw NSWindow pointer so it can cross thread boundaries safely.
+/// Safety: NSWindow manipulation is always marshalled to the main thread via
+/// `with_webview`, so we never actually touch this pointer off-thread.
+#[cfg(target_os = "macos")]
+struct NsWindowPtr(*mut objc::runtime::Object);
+#[cfg(target_os = "macos")]
+unsafe impl Send for NsWindowPtr {}
+
+/// Returns the underlying NSWindow pointer for a webview window.
+#[cfg(target_os = "macos")]
+fn get_ns_window(
+    window: &tauri::WebviewWindow,
+) -> Result<*mut objc::runtime::Object, String> {
+    let (tx, rx) = std::sync::mpsc::channel::<NsWindowPtr>();
+    window
+        .with_webview(move |wv| unsafe {
+            let ptr = wv.ns_window() as *mut objc::runtime::Object;
+            let _ = tx.send(NsWindowPtr(ptr));
+        })
+        .map_err(|e| e.to_string())?;
+    Ok(rx.recv().map_err(|e| e.to_string())?.0)
+}
+
+/// Attaches `child` as an NSWindow child of `parent`.
+/// On macOS the OS then moves the child in sync with the parent — zero lag.
+#[cfg(target_os = "macos")]
+fn add_child_window(
+    parent: &tauri::WebviewWindow,
+    child: &tauri::WebviewWindow,
+) -> Result<(), String> {
+    use objc::{msg_send, sel, sel_impl};
+    let ns_parent = get_ns_window(parent)?;
+    let ns_child = get_ns_window(child)?;
+    unsafe {
+        // NSWindowOrderedAbove = 1
+        let _: () = msg_send![ns_parent, addChildWindow: ns_child ordered: 1i32];
+    }
+    Ok(())
+}
+
+/// Detaches `child` from `parent`'s NSWindow child list.
+#[cfg(target_os = "macos")]
+fn remove_child_window(
+    parent: &tauri::WebviewWindow,
+    child: &tauri::WebviewWindow,
+) -> Result<(), String> {
+    use objc::{msg_send, sel, sel_impl};
+    let ns_parent = get_ns_window(parent)?;
+    let ns_child = get_ns_window(child)?;
+    unsafe {
+        let _: () = msg_send![ns_parent, removeChildWindow: ns_child];
+    }
+    Ok(())
+}
+
 #[tauri::command]
 fn open_task_dropdown(app: AppHandle) -> Result<(), String> {
     let panel = app
@@ -37,7 +92,7 @@ fn open_task_dropdown(app: AppHandle) -> Result<(), String> {
     let dropdown_x = logical_x;
     let dropdown_y = logical_y - dropdown_height;
 
-    if let Some(existing) = app.get_webview_window("task-dropdown") {
+    let dropdown_window = if let Some(existing) = app.get_webview_window("task-dropdown") {
         existing
             .set_position(PhysicalPosition::new(
                 (dropdown_x * scale) as i32,
@@ -45,6 +100,7 @@ fn open_task_dropdown(app: AppHandle) -> Result<(), String> {
             ))
             .map_err(|e| e.to_string())?;
         show_without_focus(&existing)?;
+        existing
     } else {
         WebviewWindowBuilder::new(
             &app,
@@ -60,8 +116,11 @@ fn open_task_dropdown(app: AppHandle) -> Result<(), String> {
         .inner_size(logical_width, dropdown_height)
         .position(dropdown_x, dropdown_y)
         .build()
-        .map_err(|e| e.to_string())?;
-    }
+        .map_err(|e| e.to_string())?
+    };
+
+    #[cfg(target_os = "macos")]
+    add_child_window(&panel, &dropdown_window)?;
 
     Ok(())
 }
@@ -69,6 +128,71 @@ fn open_task_dropdown(app: AppHandle) -> Result<(), String> {
 #[tauri::command]
 fn close_task_dropdown(app: AppHandle) -> Result<(), String> {
     if let Some(window) = app.get_webview_window("task-dropdown") {
+        #[cfg(target_os = "macos")]
+        if let Some(panel) = app.get_webview_window("panel") {
+            let _ = remove_child_window(&panel, &window);
+        }
+        window.hide().map_err(|e| e.to_string())?;
+    }
+    Ok(())
+}
+
+#[tauri::command]
+fn open_history_window(app: AppHandle) -> Result<(), String> {
+    let panel = app
+        .get_webview_window("panel")
+        .ok_or("panel window not found")?;
+
+    let scale = panel.scale_factor().map_err(|e| e.to_string())?;
+    let phys_pos = panel.outer_position().map_err(|e| e.to_string())?;
+    let phys_size = panel.outer_size().map_err(|e| e.to_string())?;
+
+    let logical_width = phys_size.width as f64 / scale;
+    let logical_x = phys_pos.x as f64 / scale;
+    let logical_y = phys_pos.y as f64 / scale;
+
+    let history_height = 300.0_f64;
+    let gap = 8.0_f64;
+    let history_x = logical_x;
+    let history_y = logical_y - history_height - gap;
+
+    let history_window = if let Some(existing) = app.get_webview_window("history") {
+        existing
+            .set_position(PhysicalPosition::new(
+                (history_x * scale) as i32,
+                (history_y * scale) as i32,
+            ))
+            .map_err(|e| e.to_string())?;
+        show_without_focus(&existing)?;
+        existing
+    } else {
+        WebviewWindowBuilder::new(&app, "history", WebviewUrl::App("index.html".into()))
+            .title("")
+            .decorations(false)
+            .always_on_top(true)
+            .resizable(false)
+            .focused(false)
+            .skip_taskbar(true)
+            .inner_size(logical_width, history_height)
+            .position(history_x, history_y)
+            .build()
+            .map_err(|e| e.to_string())?
+    };
+
+    // Attach as macOS child window so the OS moves it with the panel — no lag.
+    #[cfg(target_os = "macos")]
+    add_child_window(&panel, &history_window)?;
+
+    Ok(())
+}
+
+#[tauri::command]
+fn close_history_window(app: AppHandle) -> Result<(), String> {
+    if let Some(window) = app.get_webview_window("history") {
+        #[cfg(target_os = "macos")]
+        if let Some(panel) = app.get_webview_window("panel") {
+            let _ = remove_child_window(&panel, &window);
+        }
         window.hide().map_err(|e| e.to_string())?;
     }
     Ok(())
@@ -79,7 +203,9 @@ pub fn run() {
     tauri::Builder::default()
         .invoke_handler(tauri::generate_handler![
             open_task_dropdown,
-            close_task_dropdown
+            close_task_dropdown,
+            open_history_window,
+            close_history_window
         ])
         .setup(|app| {
             let window = app.get_webview_window("panel").unwrap();
@@ -101,7 +227,7 @@ pub fn run() {
 
             window.show()?;
 
-            // Hide the dropdown whenever the panel loses OS focus
+            // Hide the dropdown whenever the panel loses OS focus.
             let app_handle = app.handle().clone();
             window.on_window_event(move |event| {
                 if let WindowEvent::Focused(false) = event {

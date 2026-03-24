@@ -1,7 +1,7 @@
 {
   "identifier": "default",
   "description": "Default capabilities for the desktop panel",
-  "windows": ["panel", "task-dropdown"],
+  "windows": ["panel", "task-dropdown", "history"],
   "permissions": [
     "core:default",
     "core:window:allow-set-position",

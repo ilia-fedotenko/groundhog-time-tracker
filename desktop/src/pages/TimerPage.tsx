@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react"
 import { Badge, Button, Input } from "@groundhog/ui"
 import { emit, listen } from "@tauri-apps/api/event"
 import { invoke } from "@tauri-apps/api/core"
-import { Play, Plus, Square } from "lucide-react"
+import { History, Play, Plus, Square } from "lucide-react"
 
 const MOCK_TAGS = ["frontend", "design", "review"]
 
@@ -11,6 +11,7 @@ export default function TimerPage() {
   const [inputValue, setInputValue] = useState("")
   const [running, setRunning] = useState(false)
   const [tags, setTags] = useState(MOCK_TAGS)
+  const [historyOpen, setHistoryOpen] = useState(false)
   const dropdownOpen = useRef(false)
   const hoveredTask = useRef<string | null>(null)
 
@@ -70,6 +71,26 @@ export default function TimerPage() {
 
   return (
     <div className="flex h-screen flex-col justify-center gap-2 bg-background px-3 py-2">
+      {/* Row 0: history toggle */}
+      <div className="flex justify-end">
+        <Button
+          size="icon"
+          variant="ghost"
+          className="size-6"
+          onClick={async () => {
+            if (historyOpen) {
+              await invoke("close_history_window")
+              setHistoryOpen(false)
+            } else {
+              await invoke("open_history_window")
+              setHistoryOpen(true)
+            }
+          }}
+        >
+          <History className="size-3.5" />
+        </Button>
+      </div>
+
       {/* Row 1: play button + task input */}
       <div className="flex items-center gap-2">
         <Input
