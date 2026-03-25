@@ -67,13 +67,15 @@ npm run lint     # ESLint
 
 Предварительно: [установить Rust](https://rustup.rs) и убедиться что `cargo` есть в PATH.
 
+> **Важно для Claude:** bash-команды выполняются в неинтерактивной оболочке, которая не читает `~/.zshrc`. Rust устанавливается через `~/.cargo/env`, который подключается только в интерактивных сессиях. Поэтому перед любой desktop-командой, требующей `cargo`/`tauri`, нужно явно запускать: `source ~/.cargo/env && ...`
+
 ```bash
 nvm use 24        # переключиться на Node 24
 npm install       # установить JS-зависимости (запускать из корня репо!)
 cd desktop
-npm run dev       # запустить Tauri dev (Vite + Rust компилируются вместе; первый запуск долгий)
-npm run build     # production-сборка (.app в src-tauri/target/release/bundle/)
-npm run lint      # ESLint
+source ~/.cargo/env && npm run dev    # запустить Tauri dev (Vite + Rust компилируются вместе; первый запуск долгий)
+source ~/.cargo/env && npm run build  # production-сборка (.app в src-tauri/target/release/bundle/)
+npm run lint      # ESLint (не требует cargo)
 ```
 
 ## Правила для Claude
