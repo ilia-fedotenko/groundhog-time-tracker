@@ -60,4 +60,5 @@ Pet-проект для отслеживания рабочего времени
 - [x] Общий UI package — npm workspaces + @groundhog/ui (shadcn/ui + Tailwind 4)
 - [x] Подключение MCP-сервера Context7 и ревью backend scaffold с его помощью
 - [x] Изучение необходимости интеграции GitHub review агента
+- [x] Добавление первого skill (shadcn)
 - [ ] Черновая версия UI основной страницы desktop (без привязки к backend)
