@@ -14,6 +14,16 @@ export {
   CommandItem,
   CommandSeparator,
 } from "./components/ui/command"
+export { ScrollArea, ScrollBar } from "./components/ui/scroll-area"
+export {
+  Card,
+  CardHeader,
+  CardFooter,
+  CardTitle,
+  CardAction,
+  CardDescription,
+  CardContent,
+} from "./components/ui/card"
 export {
   Table,
   TableHeader,
