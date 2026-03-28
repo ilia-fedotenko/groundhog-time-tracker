@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react"
-import { Badge, Button, Input } from "@groundhog/ui"
+import { Badge, Button, Input, Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@groundhog/ui"
 import { emit, listen } from "@tauri-apps/api/event"
 import { invoke } from "@tauri-apps/api/core"
 import { History, Play, Plus, Square } from "lucide-react"
@@ -12,8 +12,15 @@ export default function TimerPage() {
   const [running, setRunning] = useState(false)
   const [tags, setTags] = useState(MOCK_TAGS)
   const [historyOpen, setHistoryOpen] = useState(false)
+  const [elapsed, setElapsed] = useState(0)
   const dropdownOpen = useRef(false)
   const hoveredTask = useRef<string | null>(null)
+
+  useEffect(() => {
+    if (!running) return
+    const id = setInterval(() => setElapsed((s) => s + 1), 1000)
+    return () => clearInterval(id)
+  }, [running])
 
   useEffect(() => {
     const unlistenHovered = listen<string | null>("task-hovered", (event) => {
@@ -71,12 +78,12 @@ export default function TimerPage() {
 
   return (
     <div className="flex h-screen flex-col justify-center gap-2 bg-background px-3 py-2">
-      {/* Row 0: history toggle */}
-      <div className="flex justify-end">
+      {/* Fixed: history toggle */}
+      <div className="fixed right-2 top-2">
         <Button
           size="icon"
           variant="ghost"
-          className="size-6"
+          className="group size-8"
           onClick={async () => {
             if (historyOpen) {
               await invoke("close_history_window")
@@ -87,13 +94,14 @@ export default function TimerPage() {
             }
           }}
         >
-          <History className="size-3.5" />
+          <History className="size-4 text-muted-foreground group-hover:text-foreground group-focus-visible:text-foreground" />
         </Button>
       </div>
 
-      {/* Row 1: play button + task input */}
+      {/* Row 1: task input */}
       <div className="flex items-center gap-2">
         <Input
+          className="border-transparent bg-transparent hover:border-input text-center"
           placeholder="Что делаем?"
           value={inputValue}
           onFocus={handleFocus}
@@ -101,22 +109,13 @@ export default function TimerPage() {
           onKeyDown={handleKeyDown}
           onBlur={handleBlur}
         />
-
-        <Button
-          size="icon"
-          className="size-8 shrink-0"
-          onClick={() => setRunning((r) => !r)}
-          disabled={!task}
-        >
-          {running ? <Square className="size-3.5" /> : <Play className="size-3.5" />}
-        </Button>
       </div>
 
       {/* Row 2: tags */}
-      <div className="flex flex-wrap items-center gap-1.5 px-0.5">
+      <div className="flex flex-wrap items-center justify-center gap-1.5 px-0.5">
         {tags.map((tag) => (
           <Badge key={tag} variant="secondary" className="text-xs">
-            #{tag}
+            {tag}
           </Badge>
         ))}
         <button
@@ -128,6 +127,43 @@ export default function TimerPage() {
         >
           <Plus className="size-3" />
         </button>
+      </div>
+
+      {/* Row 3: timer + scope select */}
+      <div className="mt-2 flex flex-col items-center gap-1">
+        <span className="font-mono text-4xl font-semibold tabular-nums">
+          {[
+            Math.floor(elapsed / 3600),
+            Math.floor((elapsed % 3600) / 60),
+            elapsed % 60,
+          ]
+            .map((n) => String(n).padStart(2, "0"))
+            .join(":")}
+        </span>
+        <Select defaultValue="entry">
+          <SelectTrigger size="sm" className="w-34 justify-center text-xs border-transparent text-muted-foreground hover:border-input hover:text-foreground focus-visible:text-foreground dark:bg-transparent dark:hover:bg-transparent">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="entry">Per time entry</SelectItem>
+            <SelectItem value="task">Per task (today)</SelectItem>
+            <SelectItem value="day">Per whole day</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
+      {/* Row 5: start/stop button */}
+      <div className="mt-2 flex justify-center">
+        <Button
+          size="icon"
+          className="size-10 shrink-0 rounded-full"
+          onClick={() => {
+            if (!running) setElapsed(0)
+            setRunning((r) => !r)
+          }}
+        >
+          {running ? <Square className="size-4" /> : <Play className="size-4" />}
+        </Button>
       </div>
     </div>
   )

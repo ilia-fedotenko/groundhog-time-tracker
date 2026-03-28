@@ -25,6 +25,13 @@ export {
   CardContent,
 } from "./components/ui/card"
 export {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "./components/ui/select"
+export {
   Table,
   TableHeader,
   TableBody,
